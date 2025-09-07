@@ -1,11 +1,4 @@
 # AlertCast – Real-Time Device Health Ticketing System (Go + Kafka)
-
-A production-style, **upload-to-GitHub-ready** project that ingests real-time device events, applies
-**severity rules**, stores tickets in **PostgreSQL**, keeps live counters in **Redis**, and exposes a small **HTTP API**.
-Includes **Docker Compose** for one-command local spin-up, and **Kafdrop** to inspect Kafka topics.
-
-> Tailored for a data/back-end engineer background (streaming, infra, reliability). Ships with rules and realistic sample data to hit **200+ events/day** by default (configurable).
-
 ---
 
 ## Features

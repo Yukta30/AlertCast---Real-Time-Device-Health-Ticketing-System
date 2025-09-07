@@ -1,0 +1,77 @@
+version: "3.9"
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.9
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: bitnami/kafka:3.6
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    depends_on:
+      - kafka
+    ports:
+      - "9000:9000"
+    environment:
+      - KAFKA_BROKERCONNECT=kafka:9092
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=alertcast
+      - POSTGRES_PASSWORD=alertcast
+      - POSTGRES_DB=alertcast
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    env_file: .env
+    depends_on:
+      - kafka
+      - postgres
+      - redis
+    ports:
+      - "8080:8080"
+
+  processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.processor
+    env_file: .env
+    depends_on:
+      - kafka
+      - postgres
+      - redis
+    # scale with: docker compose up --scale processor=3
+    deploy:
+      replicas: 1
+
+  ingestor:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingestor
+    env_file: .env
+    depends_on:
+      - kafka
